@@ -40,3 +40,4 @@ jobs:
           service: 'go-cicd-service'
           region: 'us-central1'
           image: 'us-central1-docker.pkg.dev/project-b68bbff7-ee85-4b1b-b6b/my-repo/my-app:${{ github.sha }}'
+          flags: '--allow-unauthenticated'
