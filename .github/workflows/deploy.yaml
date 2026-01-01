@@ -1,0 +1,42 @@
+name: Build and Deploy to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Google Auth
+        uses: 'google-github-actions/auth@v2'
+        with:
+          # This is the string from your screenshot
+          workload_identity_provider: 'projects/386734369202/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
+          service_account: 'github-deployer@project-b68bbff7-ee85-4b1b-b6b.iam.gserviceaccount.com'
+
+      - name: Build and Push Container
+        run: |
+          gcloud auth configure-docker us-central1-docker.pkg.dev
+          # Note: Replace 'my-repo' with the name of the repository you created in Artifact Registry
+          docker build -t us-central1-docker.pkg.dev/project-b68bbff7-ee85-4b1b-b6b/my-repo/my-app:${{ github.sha }} .
+          docker push us-central1-docker.pkg.dev/project-b68bbff7-ee85-4b1b-b6b/my-repo/my-app:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        uses: 'google-github-actions/deploy-cloudrun@v2'
+        with:
+          service: 'go-cicd-service'
+          region: 'us-central1'
+          image: 'us-central1-docker.pkg.dev/project-b68bbff7-ee85-4b1b-b6b/my-repo/my-app:${{ github.sha }}'
