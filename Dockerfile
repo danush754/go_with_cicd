@@ -3,7 +3,7 @@
 FROM golang:1.22-alpine AS builder
 WORKDIR /app
 COPY . .
-RUN go mod init first-ci-cd-app && go build -o server .
+RUN go build -o server .
 
 FROM alpine:latest
 WORKDIR /root/
